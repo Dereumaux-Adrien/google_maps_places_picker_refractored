@@ -589,9 +589,8 @@ class _PlacePickerState extends State<PlacePicker> {
     }
   }
 
-
   _zoom({required bool inOut}) async {
-    zoom = inOut? zoom+1:zoom-1;
+    zoom = inOut ? zoom + 1 : zoom - 1;
     await _moveTo(
       mapCenter.latitude,
       mapCenter.longitude,
@@ -665,26 +664,11 @@ class _PlacePickerState extends State<PlacePicker> {
         }
       },
       onZoomIn: () async {
-        // Prevent to click many times in short period.
-        if (provider!.isOnUpdateLocationCooldown == false) {
-          provider!.isOnUpdateLocationCooldown = true;
-          Timer(Duration(seconds: widget.myLocationButtonCooldown), () {
-            provider!.isOnUpdateLocationCooldown = false;
-          });
-          await provider!
-              .updateCurrentLocation(widget.forceAndroidLocationManager);
-          await _zoom(inOut: true);
-        }
+        await _zoom(inOut: true);
       },
       onZoomOut: () async {
         // Prevent to click many times in short period.
         if (provider!.isOnUpdateLocationCooldown == false) {
-          provider!.isOnUpdateLocationCooldown = true;
-          Timer(Duration(seconds: widget.myLocationButtonCooldown), () {
-            provider!.isOnUpdateLocationCooldown = false;
-          });
-          await provider!
-              .updateCurrentLocation(widget.forceAndroidLocationManager);
           await _zoom(inOut: false);
         }
       },
