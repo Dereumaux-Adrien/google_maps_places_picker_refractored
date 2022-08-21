@@ -45,6 +45,8 @@ class GoogleMapPlacePicker extends StatelessWidget {
     this.enableZoomButtons,
     this.onToggleMapType,
     this.onMyLocation,
+    this.onZoomIn,
+    this.onZoomOut,
     this.onPlacePicked,
     this.usePinPointingSearch,
     this.usePlaceDetailSearch,
@@ -66,6 +68,8 @@ class GoogleMapPlacePicker extends StatelessWidget {
   final MapCreatedCallback? onMapCreated;
   final VoidCallback? onToggleMapType;
   final VoidCallback? onMyLocation;
+  final VoidCallback? onZoomIn;
+  final VoidCallback? onZoomOut;
   final ValueChanged<PickResult>? onPlacePicked;
 
   final int? debounceMilliseconds;
@@ -170,6 +174,7 @@ class GoogleMapPlacePicker extends StatelessWidget {
             initialCameraPosition: initialCameraPosition,
             mapType: data,
             myLocationEnabled: true,
+            zoomControlsEnabled: false,
             onMapCreated: (GoogleMapController controller) {
               provider.mapController = controller;
               provider.setCameraPosition(null);
@@ -400,47 +405,38 @@ class GoogleMapPlacePicker extends StatelessWidget {
   Widget _buildMapIcons(BuildContext context) {
     // final RenderBox appBarRenderBox =
     //     appBarKey.currentContext!.findRenderObject() as RenderBox;
-
     return Positioned(
-      // top: appBarRenderBox.size.height,
-      top: height != null
-          ? MediaQuery.of(context).size.height * height! / 50 * 0.1
-          : MediaQuery.of(context).size.height * 0.10,
-      right: 15,
-      child: Column(
-        children: <Widget>[
-          enableMapTypeButton!
-              ? Container(
-                  width: 35,
-                  height: 35,
-                  child: RawMaterialButton(
-                    shape: CircleBorder(),
-                    fillColor: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.black54
-                        : Colors.white,
-                    elevation: 8.0,
-                    onPressed: onToggleMapType,
-                    child: Icon(Icons.layers),
-                  ),
-                )
-              : Container(),
-          SizedBox(height: 10),
-          enableMyLocationButton!
-              ? Container(
-                  width: 35,
-                  height: 35,
-                  child: RawMaterialButton(
-                    shape: CircleBorder(),
-                    fillColor: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.black54
-                        : Colors.white,
-                    elevation: 8.0,
+      top: 35.0,
+      right: 20.0,
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xAAFFFFFF),
+          borderRadius: BorderRadius.circular(100),
+        ),
+        child: Column(
+          children: <Widget>[
+            enableMyLocationButton!
+                ? IconButton(
+                    color: const Color(0xFF212121),
+                    icon: const Icon(Icons.my_location),
                     onPressed: onMyLocation,
-                    child: Icon(Icons.my_location),
-                  ),
-                )
-              : Container(),
-        ],
+                  )
+                : Container(),
+            SizedBox(height: 10),
+            enableZoomButtons!
+                ? IconButton(
+                    color: const Color(0xFF212121),
+                    icon: const Icon(Icons.zoom_in),
+                    onPressed: onZoomIn)
+                : Container(),
+            enableZoomButtons!
+                ? IconButton(
+                    color: const Color(0xFF212121),
+                    icon: const Icon(Icons.zoom_out),
+                    onPressed: onZoomOut)
+                : Container(),
+          ],
+        ),
       ),
     );
   }

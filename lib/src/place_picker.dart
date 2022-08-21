@@ -16,6 +16,7 @@ import 'package:provider/provider.dart';
 import 'dart:io' show Platform;
 
 enum PinState { Preparing, Idle, Dragging }
+
 enum SearchingState { Idle, Searching }
 
 class PlacePicker extends StatefulWidget {
@@ -24,6 +25,7 @@ class PlacePicker extends StatefulWidget {
     required this.apiKey,
     this.onPlacePicked,
     required this.initialPosition,
+    this.startingZoom = 16,
     this.useCurrentLocation,
     this.desiredLocationAccuracy = LocationAccuracy.high,
     this.onMapCreated,
@@ -119,6 +121,7 @@ class PlacePicker extends StatefulWidget {
   final String apiKey;
   final BorderRadiusGeometry? borderRadius;
   final LatLng initialPosition;
+  final double startingZoom;
   final bool? useCurrentLocation;
   final LocationAccuracy desiredLocationAccuracy;
 
@@ -126,6 +129,7 @@ class PlacePicker extends StatefulWidget {
 
   final String? hintText;
   final String? searchingText;
+
   // final double searchBarHeight;
   // final EdgeInsetsGeometry contentPadding;
 
@@ -325,11 +329,13 @@ class _PlacePickerState extends State<PlacePicker> {
   Future<PlaceProvider>? _futureProvider;
   PlaceProvider? provider;
   SearchBarController searchBarController = SearchBarController();
+  LatLng mapCenter = LatLng(0, 0);
+  double zoom = 16;
 
   @override
   void initState() {
     super.initState();
-
+    zoom = widget.startingZoom;
     _futureProvider = _initPlaceProvider();
   }
 
@@ -443,7 +449,8 @@ class _PlacePickerState extends State<PlacePicker> {
           Expanded(
             child: AutoCompleteSearch(
                 appBarKey: appBarKey,
-                isInScaffoldBodyAndHasAppBar: widget.isInScaffoldBodyAndHasAppBar,
+                isInScaffoldBodyAndHasAppBar:
+                    widget.isInScaffoldBodyAndHasAppBar,
                 borderRadius: widget.borderRadius,
                 searchBarController: searchBarController,
                 sessionToken: provider!.sessionToken,
@@ -548,31 +555,48 @@ class _PlacePickerState extends State<PlacePicker> {
     // Prevents searching again by camera movement.
     provider!.isAutoCompleteSearching = true;
 
-    await _moveTo(provider!.selectedPlace!.geometry!.location.lat,
-        provider!.selectedPlace!.geometry!.location.lng);
+    await _moveTo(
+      provider!.selectedPlace!.geometry!.location.lat,
+      provider!.selectedPlace!.geometry!.location.lng,
+      zoom,
+    );
 
     provider!.placeSearchingState = SearchingState.Idle;
   }
 
-  _moveTo(double latitude, double longitude) async {
+  _moveTo(double latitude, double longitude, double zoom) async {
     GoogleMapController? controller = provider!.mapController;
     if (controller == null) return;
-
+    var target = LatLng(latitude, longitude);
     await controller.animateCamera(
       CameraUpdate.newCameraPosition(
         CameraPosition(
-          target: LatLng(latitude, longitude),
-          zoom: 16,
+          target: target,
+          zoom: zoom,
         ),
       ),
     );
+    mapCenter = target;
   }
 
   _moveToCurrentPosition() async {
     if (provider!.currentPosition != null) {
-      await _moveTo(provider!.currentPosition!.latitude,
-          provider!.currentPosition!.longitude);
+      await _moveTo(
+        provider!.currentPosition!.latitude,
+        provider!.currentPosition!.longitude,
+        zoom,
+      );
     }
+  }
+
+
+  _zoom({required bool inOut}) async {
+    zoom = inOut? zoom+1:zoom-1;
+    await _moveTo(
+      mapCenter.latitude,
+      mapCenter.longitude,
+      zoom,
+    );
   }
 
   Widget _buildMapWithLocation() {
@@ -638,6 +662,30 @@ class _PlacePickerState extends State<PlacePicker> {
           await provider!
               .updateCurrentLocation(widget.forceAndroidLocationManager);
           await _moveToCurrentPosition();
+        }
+      },
+      onZoomIn: () async {
+        // Prevent to click many times in short period.
+        if (provider!.isOnUpdateLocationCooldown == false) {
+          provider!.isOnUpdateLocationCooldown = true;
+          Timer(Duration(seconds: widget.myLocationButtonCooldown), () {
+            provider!.isOnUpdateLocationCooldown = false;
+          });
+          await provider!
+              .updateCurrentLocation(widget.forceAndroidLocationManager);
+          await _zoom(inOut: true);
+        }
+      },
+      onZoomOut: () async {
+        // Prevent to click many times in short period.
+        if (provider!.isOnUpdateLocationCooldown == false) {
+          provider!.isOnUpdateLocationCooldown = true;
+          Timer(Duration(seconds: widget.myLocationButtonCooldown), () {
+            provider!.isOnUpdateLocationCooldown = false;
+          });
+          await provider!
+              .updateCurrentLocation(widget.forceAndroidLocationManager);
+          await _zoom(inOut: false);
         }
       },
       onMoveStart: () {
