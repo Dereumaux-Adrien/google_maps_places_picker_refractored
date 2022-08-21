@@ -42,6 +42,7 @@ class GoogleMapPlacePicker extends StatelessWidget {
     this.debounceMilliseconds,
     this.enableMapTypeButton,
     this.enableMyLocationButton,
+    this.enableZoomButtons,
     this.onToggleMapType,
     this.onMyLocation,
     this.onPlacePicked,
@@ -70,6 +71,7 @@ class GoogleMapPlacePicker extends StatelessWidget {
   final int? debounceMilliseconds;
   final bool? enableMapTypeButton;
   final bool? enableMyLocationButton;
+  final bool? enableZoomButtons;
 
   final bool? usePinPointingSearch;
   final bool? usePlaceDetailSearch;

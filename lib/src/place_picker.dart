@@ -42,6 +42,7 @@ class PlacePicker extends StatefulWidget {
     this.initialMapType = MapType.normal,
     this.enableMapTypeButton = true,
     this.enableMyLocationButton = true,
+    this.enableZoomButtons = true,
     this.myLocationButtonCooldown = 10,
     this.usePinPointingSearch = true,
     this.usePlaceDetailSearch = false,
@@ -136,6 +137,7 @@ class PlacePicker extends StatefulWidget {
   final MapType initialMapType;
   final bool enableMapTypeButton;
   final bool enableMyLocationButton;
+  final bool enableZoomButtons;
   final int myLocationButtonCooldown;
 
   final bool usePinPointingSearch;
@@ -614,6 +616,7 @@ class _PlacePickerState extends State<PlacePicker> {
       onSearchFailed: widget.onGeocodingSearchFailed,
       debounceMilliseconds: widget.cameraMoveDebounceInMilliseconds,
       enableMapTypeButton: widget.enableMapTypeButton,
+      enableZoomButtons: widget.enableZoomButtons,
       enableMyLocationButton: widget.enableMyLocationButton,
       usePinPointingSearch: widget.usePinPointingSearch,
       usePlaceDetailSearch: widget.usePlaceDetailSearch,
